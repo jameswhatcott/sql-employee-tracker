@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
 const { Client } = require('pg');
+const fs = require('fs');
 require('dotenv').config();
 
 const client = new Client({
@@ -42,35 +43,32 @@ const handleUserChoice = (choice) => {
 };
 
 const viewAllDepartments = () => {
-  client.query('SELECT * FROM departments', (err, res) => {
+  client.query('SELECT * FROM department', (err, res) => {
     if (err) {
       console.error(err);
       return;
     }
     console.table(res.rows);
-    client.end();
   });
 };
 
 const viewAllRoles = () => {
-  client.query('SELECT * FROM roles', (err, res) => {
+  client.query('SELECT * FROM role', (err, res) => {
     if (err) {
       console.error(err);
       return;
     }
     console.table(res.rows);
-    client.end();
   });
 };
 
 const viewAllEmployees = () => {
-  client.query('SELECT * FROM employees', (err, res) => {
+  client.query('SELECT * FROM employee', (err, res) => {
     if (err) {
       console.error(err);
       return;
     }
     console.table(res.rows);
-    client.end();
   });
 };
 
@@ -82,14 +80,13 @@ const addDepartment = () => {
       message: 'Enter the name of the new department:',
     }
   ]).then(({ departmentName }) => {
-    const query = 'INSERT INTO departments (name) VALUES ($1)';
+    const query = 'INSERT INTO department (name) VALUES ($1)';
     client.query(query, [departmentName], (err, res) => {
       if (err) {
         console.error(err);
         return;
       }
       console.log('Department added successfully');
-      client.end();
     });
   });
 };
@@ -112,14 +109,13 @@ const addRole = () => {
       message: 'Enter the department ID for the new role:',
     }
   ]).then(({ roleName, salary, departmentId }) => {
-    const query = 'INSERT INTO roles (title, salary, department_id) VALUES ($1, $2, $3)';
+    const query = 'INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3)';
     client.query(query, [roleName, salary, departmentId], (err, res) => {
       if (err) {
         console.error(err);
         return;
       }
       console.log('Role added successfully');
-      client.end();
     });
   });
 };
@@ -144,17 +140,17 @@ const addEmployee = () => {
     {
       type: 'input',
       name: 'managerId',
-      message: 'Enter the manager ID for the new employee:',
+      message: 'Enter the manager ID for the new employee (leave blank if none):',
+      default: null
     }
   ]).then(({ firstName, lastName, roleId, managerId }) => {
-    const query = 'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)';
+    const query = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)';
     client.query(query, [firstName, lastName, roleId, managerId], (err, res) => {
       if (err) {
         console.error(err);
         return;
       }
       console.log('Employee added successfully');
-      client.end();
     });
   });
 };
@@ -172,17 +168,42 @@ const updateEmployeeRole = () => {
       message: 'Enter the new role ID for the employee:',
     }
   ]).then(({ employeeId, newRoleId }) => {
-    const query = 'UPDATE employees SET role_id = $1 WHERE id = $2';
+    const query = 'UPDATE employee SET role_id = $1 WHERE id = $2';
     client.query(query, [newRoleId, employeeId], (err, res) => {
       if (err) {
         console.error(err);
         return;
       }
       console.log('Employee role updated successfully');
+    });
+  });
+};
+
+// Function to set up the database
+const setupDatabase = () => {
+  const schema = fs.readFileSync('db/schema.sql').toString();
+  const seeds = fs.readFileSync('db/seeds.sql').toString();
+
+  client.query(schema, (err, res) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log('Database schema created successfully');
+
+    client.query(seeds, (err, res) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log('Database seeded successfully');
       client.end();
     });
   });
 };
+
+// Uncomment the following line to set up the database
+setupDatabase();
 
 inquirer
   .prompt([
