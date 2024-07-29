@@ -5,13 +5,13 @@ require('dotenv').config();
 
 const client = new Client({
   user: process.env.DB_USER,
-  host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
 });
 
 client.connect();
+
+
 
 const handleUserChoice = (choice) => {
   switch (choice) {
@@ -49,6 +49,7 @@ const viewAllDepartments = () => {
       return;
     }
     console.table(res.rows);
+    startApp();
   });
 };
 
@@ -59,6 +60,7 @@ const viewAllRoles = () => {
       return;
     }
     console.table(res.rows);
+    startApp();
   });
 };
 
@@ -69,6 +71,7 @@ const viewAllEmployees = () => {
       return;
     }
     console.table(res.rows);
+    startApp();
   });
 };
 
@@ -87,6 +90,7 @@ const addDepartment = () => {
         return;
       }
       console.log('Department added successfully');
+      viewAllDepartments();
     });
   });
 };
@@ -116,6 +120,7 @@ const addRole = () => {
         return;
       }
       console.log('Role added successfully');
+      viewAllRoles();
     });
   });
 };
@@ -151,6 +156,7 @@ const addEmployee = () => {
         return;
       }
       console.log('Employee added successfully');
+      viewAllEmployees();
     });
   });
 };
@@ -175,6 +181,7 @@ const updateEmployeeRole = () => {
         return;
       }
       console.log('Employee role updated successfully');
+      viewAllEmployees();
     });
   });
 };
@@ -203,8 +210,8 @@ const setupDatabase = () => {
 };
 
 // Uncomment the following line to set up the database
-setupDatabase();
-
+// setupDatabase();
+function startApp () {
 inquirer
   .prompt([
     {
@@ -225,3 +232,5 @@ inquirer
   .then((response) => {
     handleUserChoice(response.menu);
   });
+}
+startApp();
